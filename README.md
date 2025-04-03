@@ -26,3 +26,10 @@ The full documentation is available at:
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE.md) file for details.
+
+## Heroku Deployment
+Deployment is done through the command line. You must have both the Heroku CLI and Docker CLI installed.
+- heroku login
+- heroku container:login
+- BUILDX_NO_DEFAULT_ATTESTATIONS=1 heroku container:push web --app latitude-updates
+- heroku container:release web --app latitude-updates
