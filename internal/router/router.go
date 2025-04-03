@@ -48,6 +48,22 @@ func NewRouter() *mux.Router {
 	r.HandleFunc("/uploadLocalFile", handlers.RequestUploadLocalFileHandler).Methods(http.MethodPut)
 	r.HandleFunc("/markUpdateAsUploaded/{BRANCH}", handlers.MarkUpdateAsUploadedHandler).Methods(http.MethodPost)
 
+	// Add API endpoints for programmatic update uploads
+	apiUploadRouter := r.PathPrefix("/api/upload").Subrouter()
+	apiUploadRouter.Use(middleware.AuthMiddleware)
+	
+	// Initialize an update
+	apiUploadRouter.HandleFunc("/initiate", handlers.InitiateUpdateHandler).Methods(http.MethodPost)
+	
+	// Upload a single file for an update
+	apiUploadRouter.HandleFunc("/{BRANCH}/{RUNTIME_VERSION}/{UPDATE_ID}/file", handlers.UploadFileHandler).Methods(http.MethodPost)
+	
+	// Upload multiple files in bulk
+	apiUploadRouter.HandleFunc("/{BRANCH}/{RUNTIME_VERSION}/{UPDATE_ID}/files", handlers.BulkUploadHandler).Methods(http.MethodPost)
+	
+	// Complete/mark an update as finished
+	apiUploadRouter.HandleFunc("/complete", handlers.CompleteUpdateHandler).Methods(http.MethodPost)
+
 	corsSubrouter := r.PathPrefix("/auth").Subrouter()
 	corsSubrouter.HandleFunc("/login", handlers.LoginHandler).Methods(http.MethodPost)
 	corsSubrouter.HandleFunc("/refreshToken", handlers.RefreshTokenHandler).Methods(http.MethodPost)
