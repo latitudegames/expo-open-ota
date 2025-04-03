@@ -47,6 +47,12 @@ func LoadConfig() {
 	if err != nil {
 		log.Printf("No .env file found, continuing with runtime environment variables.")
 	}
+	
+	// Set default BASE_URL if not set and we're in Heroku
+	if os.Getenv("BASE_URL") == "" && os.Getenv("PORT") != "" {
+		DefaultEnvValues["BASE_URL"] = "http://localhost:" + os.Getenv("PORT")
+	}
+	
 	storageMode := GetEnv("STORAGE_MODE")
 	if !validateStorageMode(storageMode) {
 		log.Fatalf("Invalid STORAGE_MODE: %s", storageMode)
