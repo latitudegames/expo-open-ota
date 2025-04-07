@@ -6,12 +6,16 @@ import (
 	"expo-open-ota/internal/bucket"
 	"expo-open-ota/internal/helpers"
 	"expo-open-ota/internal/services"
+	"expo-open-ota/internal/types"
 	"expo-open-ota/internal/update"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
+	"path/filepath"
 	"time"
 )
 
