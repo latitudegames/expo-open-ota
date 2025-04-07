@@ -2,6 +2,7 @@ package cache
 
 import (
 	"expo-open-ota/config"
+	"log"
 	"sync"
 )
 
@@ -42,7 +43,13 @@ func GetCache() Cache {
 			host := config.GetEnv("REDIS_HOST")
 			password := config.GetEnv("REDIS_PASSWORD")
 			port := config.GetEnv("REDIS_PORT")
-			cacheInstance = NewRedisCache(host, password, port)
+			instance := NewRedisCache(host, password, port)
+			if instance == nil {
+				log.Printf("WARN: Failed to initialize Redis cache (host: %s, port: %s). Falling back to local cache.", host, port)
+				cacheInstance = NewLocalCache()
+			} else {
+				cacheInstance = instance
+			}
 		default:
 			panic("Unknown cache type")
 		}
