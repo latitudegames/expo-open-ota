@@ -1,0 +1,9 @@
+build:
+  docker:
+    web: Dockerfile
+release:
+  image: web
+  command:
+    - echo "Release phase completed"
+run:
+  web: /app/main
