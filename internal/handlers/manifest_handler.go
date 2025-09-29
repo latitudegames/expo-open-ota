@@ -163,11 +163,21 @@ func ManifestHandler(w http.ResponseWriter, r *http.Request) {
 	branchMap, err := services.FetchExpoChannelMapping(channelName)
 	if err != nil {
 		log.Printf("[RequestID: %s] Error fetching channel mapping: %v", requestID, err)
+		clientId := r.Header.Get("EAS-Client-ID")
+		platform := r.Header.Get("expo-platform")
+		runtimeVersion := r.Header.Get("expo-runtime-version")
+		currentUpdateId := r.Header.Get("expo-current-update-id")
+		metrics.TrackUpdateErrorUser(clientId, platform, runtimeVersion, "", currentUpdateId)
 		http.Error(w, "Error fetching channel mapping", http.StatusInternalServerError)
 		return
 	}
 	if branchMap == nil {
 		log.Printf("[RequestID: %s] No branch mapping found for channel: %s", requestID, channelName)
+		clientId := r.Header.Get("EAS-Client-ID")
+		platform := r.Header.Get("expo-platform")
+		runtimeVersion := r.Header.Get("expo-runtime-version")
+		currentUpdateId := r.Header.Get("expo-current-update-id")
+		metrics.TrackUpdateErrorUser(clientId, platform, runtimeVersion, "", currentUpdateId)
 		http.Error(w, "No branch mapping found", http.StatusNotFound)
 		return
 	}
