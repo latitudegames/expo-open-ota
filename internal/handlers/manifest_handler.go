@@ -94,6 +94,8 @@ func putUpdateInResponse(w http.ResponseWriter, r *http.Request, lastUpdate type
 	metadata, err := update.GetMetadata(lastUpdate)
 	if err != nil {
 		log.Printf("[RequestID: %s] Error getting metadata: %v", requestID, err)
+        clientId := r.Header.Get("EAS-Client-ID")
+        metrics.TrackUpdateErrorUser(clientId, platform, lastUpdate.RuntimeVersion, lastUpdate.Branch, lastUpdate.UpdateId)
 		http.Error(w, "Error getting metadata", http.StatusInternalServerError)
 		return
 	}
@@ -104,6 +106,8 @@ func putUpdateInResponse(w http.ResponseWriter, r *http.Request, lastUpdate type
 	manifest, err := update.ComposeUpdateManifest(&metadata, lastUpdate, platform)
 	if err != nil {
 		log.Printf("[RequestID: %s] Error composing manifest: %v", requestID, err)
+        clientId := r.Header.Get("EAS-Client-ID")
+        metrics.TrackUpdateErrorUser(clientId, platform, lastUpdate.RuntimeVersion, lastUpdate.Branch, lastUpdate.UpdateId)
 		http.Error(w, "Error composing manifest", http.StatusInternalServerError)
 		return
 	}
@@ -129,6 +133,8 @@ func putRollbackInResponse(w http.ResponseWriter, r *http.Request, lastUpdate ty
 	directive, err := update.CreateRollbackDirective(lastUpdate)
 	if err != nil {
 		log.Printf("[RequestID: %s] Error creating rollback directive: %v", requestID, err)
+        clientId := r.Header.Get("EAS-Client-ID")
+        metrics.TrackUpdateErrorUser(clientId, platform, lastUpdate.RuntimeVersion, lastUpdate.Branch, lastUpdate.UpdateId)
 		http.Error(w, "Error creating rollback directive", http.StatusInternalServerError)
 		return
 	}
@@ -169,6 +175,11 @@ func ManifestHandler(w http.ResponseWriter, r *http.Request) {
 	protocolVersion, err := strconv.ParseInt(r.Header.Get("expo-protocol-version"), 10, 64)
 	if err != nil {
 		log.Printf("[RequestID: %s] Invalid protocol version: %v", requestID, err)
+		clientId := r.Header.Get("EAS-Client-ID")
+		platform := r.Header.Get("expo-platform")
+		runtimeVersion := r.Header.Get("expo-runtime-version")
+		currentUpdateId := r.Header.Get("expo-current-update-id")
+		metrics.TrackUpdateErrorUser(clientId, platform, runtimeVersion, branch, currentUpdateId)
 		http.Error(w, "Invalid protocol version", http.StatusBadRequest)
 		return
 	}
@@ -178,6 +189,10 @@ func ManifestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if platform == "" || (platform != "ios" && platform != "android") {
 		log.Printf("[RequestID: %s] Invalid platform: %s", requestID, platform)
+		clientId := r.Header.Get("EAS-Client-ID")
+		runtimeVersion := r.Header.Get("expo-runtime-version")
+		currentUpdateId := r.Header.Get("expo-current-update-id")
+		metrics.TrackUpdateErrorUser(clientId, platform, runtimeVersion, branch, currentUpdateId)
 		http.Error(w, "Invalid platform", http.StatusBadRequest)
 		return
 	}
@@ -190,12 +205,14 @@ func ManifestHandler(w http.ResponseWriter, r *http.Request) {
 	metrics.TrackActiveUser(clientId, platform, runtimeVersion, branch, currentUpdateId)
 	if runtimeVersion == "" {
 		log.Printf("[RequestID: %s] No runtime version provided", requestID)
+		metrics.TrackUpdateErrorUser(clientId, platform, runtimeVersion, branch, currentUpdateId)
 		http.Error(w, "No runtime version provided", http.StatusBadRequest)
 		return
 	}
 	lastUpdate, err := update.GetLatestUpdateBundlePathForRuntimeVersion(branch, runtimeVersion)
 	if err != nil {
 		log.Printf("[RequestID: %s] Error getting latest update: %v", requestID, err)
+		metrics.TrackUpdateErrorUser(clientId, platform, runtimeVersion, branch, currentUpdateId)
 		http.Error(w, "Error getting latest update", http.StatusInternalServerError)
 		return
 	}

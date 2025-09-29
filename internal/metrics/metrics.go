@@ -22,16 +22,25 @@ var (
 		},
 		[]string{"platform", "runtime", "branch", "update", "updateType"},
 	)
+	updateErrorUsersVec = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "update_error_users_total",
+			Help: "Total number of users who encountered errors during update process",
+		},
+		[]string{"clientId", "platform", "runtime", "branch", "update"},
+	)
 )
 
 func InitMetrics() {
 	prometheus.MustRegister(activeUsersVec)
 	prometheus.MustRegister(updateDownloadsVec)
+	prometheus.MustRegister(updateErrorUsersVec)
 }
 
 func CleanupMetrics() {
 	prometheus.Unregister(activeUsersVec)
 	prometheus.Unregister(updateDownloadsVec)
+	prometheus.Unregister(updateErrorUsersVec)
 }
 
 func TrackActiveUser(clientId, platform, runtime, branch, update string) {
@@ -46,6 +55,13 @@ func TrackUpdateDownload(platform, runtime, branch, update, updateType string) {
 		return
 	}
 	updateDownloadsVec.WithLabelValues(platform, runtime, branch, update, updateType).Inc()
+}
+
+func TrackUpdateErrorUser(clientId, platform, runtime, branch, update string) {
+    if clientId == "" || update == "" || platform == "" || branch == "" {
+        return
+    }
+    updateErrorUsersVec.WithLabelValues(clientId, platform, runtime, branch, update).Inc()
 }
 
 func PrometheusHandler() http.Handler {
@@ -66,5 +82,12 @@ func ResetMetricsForTest() {
 			Help: "Total number of update downloads per platform, runtime version, branch and update",
 		},
 		[]string{"platform", "runtime", "branch", "update", "updateType"},
+	)
+	updateErrorUsersVec = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "update_error_users_total",
+			Help: "Total number of users who encountered errors during update process",
+		},
+		[]string{"clientId", "platform", "runtime", "branch", "update"},
 	)
 }

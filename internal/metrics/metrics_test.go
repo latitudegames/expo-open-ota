@@ -81,6 +81,16 @@ func getTotalUpdateDownloads(platform, runtime, branch, update, updateType strin
 	})
 }
 
+func getUpdateErrorUsers(clientId, platform, runtime, branch, update string) float64 {
+    return getMetricValue("update_error_users_total", map[string]string{
+        "clientId": clientId,
+        "platform": platform,
+        "runtime":  runtime,
+        "branch":   branch,
+        "update":   update,
+    })
+}
+
 func TestTrackUpdateDownload(t *testing.T) {
 	teardown := setupMetrics(t)
 	defer teardown()
@@ -170,4 +180,21 @@ func TestPrometheusHandler(t *testing.T) {
 	if !strings.Contains(body, "update_downloads_total") {
 		t.Errorf("Expected update_downloads_total in metrics, got %s", body)
 	}
+}
+
+func TestTrackUpdateErrorUser(t *testing.T) {
+    teardown := setupMetrics(t)
+    defer teardown()
+    clientId := "client1"
+    platform := "ios"
+    runtime := "1.0.0"
+    branch := "stable"
+    update := "update42"
+    if got := getUpdateErrorUsers(clientId, platform, runtime, branch, update); got != 0 {
+        t.Errorf("Expected update_error_users_total to be 0, got %v", got)
+    }
+    metrics.TrackUpdateErrorUser(clientId, platform, runtime, branch, update)
+    if got := getUpdateErrorUsers(clientId, platform, runtime, branch, update); got != 1 {
+        t.Errorf("Expected update_error_users_total to be 1, got %v", got)
+    }
 }
