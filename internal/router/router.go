@@ -7,12 +7,13 @@ import (
 	"expo-open-ota/internal/metrics"
 	"expo-open-ota/internal/middleware"
 	"fmt"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
@@ -95,5 +96,6 @@ func NewRouter() *mux.Router {
 	authSubrouter.HandleFunc("/branches", handlers.GetBranchesHandler).Methods(http.MethodGet)
 	authSubrouter.HandleFunc("/branch/{BRANCH}/runtimeVersions", handlers.GetRuntimeVersionsHandler).Methods(http.MethodGet)
 	authSubrouter.HandleFunc("/branch/{BRANCH}/runtimeVersion/{RUNTIME_VERSION}/updates", handlers.GetUpdatesHandler).Methods(http.MethodGet)
+	authSubrouter.HandleFunc("/branch/{BRANCH}/runtimeVersion/{RUNTIME_VERSION}", handlers.DeleteRuntimeVersionHandler).Methods(http.MethodDelete)
 	return r
 }

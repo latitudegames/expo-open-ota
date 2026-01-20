@@ -135,6 +135,15 @@ export class ApiClient {
       method: 'GET',
     });
   }
+
+  public async deleteRuntimeVersion(branch: string, runtimeVersion: string) {
+    return this.request<{
+      deletedCount: number;
+      totalCount: number;
+    }>(`/api/branch/${branch}/runtimeVersion/${runtimeVersion}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export const api = new ApiClient();

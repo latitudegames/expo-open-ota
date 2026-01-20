@@ -9,11 +9,12 @@ import (
 	"expo-open-ota/internal/dashboard"
 	"expo-open-ota/internal/services"
 	update2 "expo-open-ota/internal/update"
-	"github.com/gorilla/mux"
 	"net/http"
 	"sort"
 	"strconv"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 type BranchMapping struct {
@@ -214,4 +215,46 @@ func GetUpdatesHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(updatesResponse)
 	marshaledResponse, _ := json.Marshal(updatesResponse)
 	cache.Set(cacheKey, string(marshaledResponse), nil)
+}
+
+func DeleteRuntimeVersionHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	branchName := vars["BRANCH"]
+	runtimeVersion := vars["RUNTIME_VERSION"]
+
+	resolvedBucket := bucket.GetBucket()
+	updates, err := resolvedBucket.GetUpdates(branchName, runtimeVersion)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to get updates"})
+		return
+	}
+
+	// Delete all updates for this runtime version
+	var deletedCount int
+	for _, update := range updates {
+		err := resolvedBucket.DeleteUpdateFolder(branchName, runtimeVersion, update.UpdateId)
+		if err != nil {
+			continue
+		}
+		deletedCount++
+	}
+
+	// Invalidate related caches
+	cache := cache2.GetCache()
+	branchesCacheKey := dashboard.ComputeGetBranchesCacheKey()
+	runtimeVersionsCacheKey := dashboard.ComputeGetRuntimeVersionsCacheKey(branchName)
+	updatesCacheKey := dashboard.ComputeGetUpdatesCacheKey(branchName, runtimeVersion)
+	lastUpdateCacheKey := update2.ComputeLastUpdateCacheKey(branchName, runtimeVersion)
+	cache.Delete(branchesCacheKey)
+	cache.Delete(runtimeVersionsCacheKey)
+	cache.Delete(updatesCacheKey)
+	cache.Delete(lastUpdateCacheKey)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"deletedCount": deletedCount,
+		"totalCount":   len(updates),
+	})
 }
