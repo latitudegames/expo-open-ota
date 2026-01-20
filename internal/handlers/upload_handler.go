@@ -114,25 +114,19 @@ func MarkUpdateAsUploadedHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error comparing updates", http.StatusInternalServerError)
 		return
 	}
-	if !areUpdatesIdentical {
-		err = update.MarkUpdateAsChecked(*currentUpdate)
-		if err != nil {
-			log.Printf("[RequestID: %s] Error marking update as checked: %v", requestID, err)
-			http.Error(w, "Error marking update as checked", http.StatusInternalServerError)
-			return
-		}
-		log.Printf("[RequestID: %s] Updates are not identical, update marked as checked", requestID)
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-	log.Printf("[RequestID: %s] Updates are identical, delete folder...", requestID)
-	err = resolvedBucket.DeleteUpdateFolder(branchName, runtimeVersion, currentUpdate.UpdateId)
+	// Always mark update as checked and deploy, even if identical to previous update
+	err = update.MarkUpdateAsChecked(*currentUpdate)
 	if err != nil {
-		log.Printf("[RequestID: %s] Error deleting update folder: %v", requestID, err)
-		http.Error(w, "Error deleting update folder", http.StatusInternalServerError)
+		log.Printf("[RequestID: %s] Error marking update as checked: %v", requestID, err)
+		http.Error(w, "Error marking update as checked", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusNotAcceptable)
+	if areUpdatesIdentical {
+		log.Printf("[RequestID: %s] Updates are identical, but deploying anyway", requestID)
+	} else {
+		log.Printf("[RequestID: %s] Updates are not identical, update marked as checked", requestID)
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func RequestUploadLocalFileHandler(w http.ResponseWriter, r *http.Request) {

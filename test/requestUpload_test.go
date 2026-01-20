@@ -501,15 +501,17 @@ func TestIdenticalUpload(t *testing.T) {
 	}
 	updateId2 := performUpload(t, projectRoot, branch, runtimeVersion, sampleUpdatePath)
 	w2 := markUpdateAsUploaded(t, branch, runtimeVersion, updateId2)
-	if w2.Code == 200 {
-		t.Fatalf("Second mark as uploaded should have failed (non-200), got %d", w2.Code)
+	// Identical updates are now deployed (not rejected), so both should return 200
+	if w2.Code != 200 {
+		t.Fatalf("Second mark as uploaded failed with status %d (identical updates should now succeed)", w2.Code)
 	}
 	lastUpdate, err := update.GetLatestUpdateBundlePathForRuntimeVersion(branch, runtimeVersion)
 	if err != nil {
 		t.Fatalf("Error getting latest update: %v", err)
 	}
 	assert.NotNil(t, lastUpdate, "Expected non-nil")
-	assert.Equal(t, updateId1, lastUpdate.UpdateId, "Expected update ID to match")
+	// Since identical updates are now deployed, the latest update should be the second one
+	assert.Equal(t, updateId2, lastUpdate.UpdateId, "Expected update ID to match the second upload")
 }
 
 func TestDifferentUpload(t *testing.T) {
