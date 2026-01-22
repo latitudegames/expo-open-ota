@@ -6,14 +6,15 @@ import (
 	"expo-open-ota/internal/bucket"
 	"expo-open-ota/internal/handlers"
 	infrastructure "expo-open-ota/internal/router"
-	"github.com/jarcoal/httpmock"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/jarcoal/httpmock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLoginDashboardNotEnabled(t *testing.T) {
@@ -226,7 +227,7 @@ func TestUpdatesRegularBranch1(t *testing.T) {
 	req.Header.Set("Authorization", "Bearer "+login().Token)
 	router.ServeHTTP(respRec, req)
 	assert.Equal(t, http.StatusOK, respRec.Code)
-	assert.Equal(t, "[{\"updateUUID\":\"b15ed6d8-f39b-04ad-a248-fa3b95fd7e0e\",\"updateId\":\"1674170951\",\"createdAt\":\"1970-01-20T09:02:50Z\",\"commitHash\":\"1674170951\",\"platform\":\"ios\"}]", strings.TrimSpace(string(respRec.Body.Bytes())))
+	assert.Equal(t, "[{\"updateUUID\":\"aa0eb074-55ae-545b-9b47-11663ef7db32\",\"updateId\":\"1674170951\",\"createdAt\":\"1970-01-20T09:02:50Z\",\"commitHash\":\"1674170951\",\"platform\":\"ios\"}]", strings.TrimSpace(string(respRec.Body.Bytes())))
 }
 
 func TestUpdatesMultiBranch2(t *testing.T) {
@@ -242,7 +243,7 @@ func TestUpdatesMultiBranch2(t *testing.T) {
 	req.Header.Set("Authorization", "Bearer "+login().Token)
 	router.ServeHTTP(respRec, req)
 	assert.Equal(t, http.StatusOK, respRec.Code)
-	assert.Equal(t, "[{\"updateUUID\":\"291580ca-a34f-73c4-fd82-7902c4129dda\",\"updateId\":\"1737455526\",\"createdAt\":\"1970-01-21T02:37:35Z\",\"commitHash\":\"\",\"platform\":\"\"},{\"updateUUID\":\"b15ed6d8-f39b-04ad-a248-fa3b95fd7e0e\",\"updateId\":\"1674170951\",\"createdAt\":\"1970-01-20T09:02:50Z\",\"commitHash\":\"\",\"platform\":\"\"},{\"updateUUID\":\"187e74b7-9dd7-e43e-75d0-64a843ffa00b\",\"updateId\":\"1666629107\",\"createdAt\":\"1970-01-20T06:57:09Z\",\"commitHash\":\"1674170951\",\"platform\":\"ios\"}]", strings.TrimSpace(string(respRec.Body.Bytes())))
+	assert.Equal(t, "[{\"updateUUID\":\"50879d7b-580e-6a32-68eb-24a26c311c25\",\"updateId\":\"1737455526\",\"createdAt\":\"1970-01-21T02:37:35Z\",\"commitHash\":\"\",\"platform\":\"\"},{\"updateUUID\":\"e3b76fe6-807d-45e1-ad35-ee87470a3504\",\"updateId\":\"1674170951\",\"createdAt\":\"1970-01-20T09:02:50Z\",\"commitHash\":\"\",\"platform\":\"\"},{\"updateUUID\":\"2df153c5-153c-b143-a2ac-1f7eab2f0656\",\"updateId\":\"1666629107\",\"createdAt\":\"1970-01-20T06:57:09Z\",\"commitHash\":\"1674170951\",\"platform\":\"ios\"}]", strings.TrimSpace(string(respRec.Body.Bytes())))
 }
 
 func TestUpdatesSomeNotValidBranch4(t *testing.T) {
@@ -258,5 +259,5 @@ func TestUpdatesSomeNotValidBranch4(t *testing.T) {
 	req.Header.Set("Authorization", "Bearer "+login().Token)
 	router.ServeHTTP(respRec, req)
 	assert.Equal(t, http.StatusOK, respRec.Code)
-	assert.Equal(t, "[{\"updateUUID\":\"b15ed6d8-f39b-04ad-a248-fa3b95fd7e0e\",\"updateId\":\"1674170951\",\"createdAt\":\"1970-01-20T09:02:50Z\",\"commitHash\":\"1674170951\",\"platform\":\"ios\"}]", strings.TrimSpace(string(respRec.Body.Bytes())))
+	assert.Equal(t, "[{\"updateUUID\":\"1f79c9e4-fc05-1cd7-05d8-a823a2cb72d1\",\"updateId\":\"1674170951\",\"createdAt\":\"1970-01-20T09:02:50Z\",\"commitHash\":\"1674170951\",\"platform\":\"ios\"}]", strings.TrimSpace(string(respRec.Body.Bytes())))
 }

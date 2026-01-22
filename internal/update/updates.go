@@ -242,7 +242,10 @@ func GetMetadata(update types.Update) (types.UpdateMetadata, error) {
 	if err != nil {
 		return types.UpdateMetadata{}, err
 	}
-	id, errHash := crypto.CreateHash(stringifiedMetadata, "sha256", "hex")
+	// Include branch, runtimeVersion, and updateId in the hash to ensure UUIDs are unique
+	// across branches and releases, even when the metadata content is identical
+	uniqueHashInput := fmt.Sprintf("%s:%s:%s:%s", update.Branch, update.RuntimeVersion, update.UpdateId, string(stringifiedMetadata))
+	id, errHash := crypto.CreateHash([]byte(uniqueHashInput), "sha256", "hex")
 
 	if errHash != nil {
 		return types.UpdateMetadata{}, errHash
