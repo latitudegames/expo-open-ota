@@ -73,8 +73,8 @@ func ComputeUpdataManifestCacheKey(branch string, runtimeVersion string, updateI
 	return fmt.Sprintf("manifest:%s:%s:%s:%s", branch, runtimeVersion, updateId, platform)
 }
 
-func ComputeManifestAssetCacheKey(update types.Update, assetPath string) string {
-	return fmt.Sprintf("asset:%s:%s:%s:%s", update.Branch, update.RuntimeVersion, update.UpdateId, assetPath)
+func ComputeManifestAssetCacheKey(update types.Update, assetPath string, platform string) string {
+	return fmt.Sprintf("asset:%s:%s:%s:%s:%s", update.Branch, update.RuntimeVersion, update.UpdateId, platform, assetPath)
 }
 
 func VerifyUploadedUpdate(update types.Update) error {
@@ -279,7 +279,7 @@ func GetAssetEndpoint() string {
 }
 
 func shapeManifestAsset(update types.Update, asset *types.Asset, isLaunchAsset bool, platform string) (types.ManifestAsset, error) {
-	cacheKey := ComputeManifestAssetCacheKey(update, asset.Path)
+	cacheKey := ComputeManifestAssetCacheKey(update, asset.Path, platform)
 	cache := cache2.GetCache()
 	if cachedValue := cache.Get(cacheKey); cachedValue != "" {
 		var manifestAsset types.ManifestAsset
