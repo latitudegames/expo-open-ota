@@ -1,13 +1,59 @@
 package config
 
 import (
+	"encoding/json"
 	"expo-open-ota/internal/helpers"
 	"flag"
 	"log"
 	"os"
+	"sort"
+	"strings"
+	"sync"
 
 	"github.com/joho/godotenv"
 )
+
+type AppConfig struct {
+	ChannelPrefix string `json:"channelPrefix"`
+	AppId         string `json:"appId"`
+	AccessToken   string `json:"accessToken,omitempty"`
+}
+
+var (
+	appConfigs     []AppConfig
+	appConfigsOnce sync.Once
+)
+
+func loadAppConfigs() {
+	raw := os.Getenv("EXPO_APP_CONFIGS")
+	if raw == "" {
+		return
+	}
+	var configs []AppConfig
+	if err := json.Unmarshal([]byte(raw), &configs); err != nil {
+		log.Printf("WARN: EXPO_APP_CONFIGS is not valid JSON, ignoring: %v", err)
+		return
+	}
+	sort.Slice(configs, func(i, j int) bool {
+		return len(configs[i].ChannelPrefix) > len(configs[j].ChannelPrefix)
+	})
+	appConfigs = configs
+	log.Printf("Loaded %d app config(s) from EXPO_APP_CONFIGS", len(configs))
+}
+
+func ResolveAppForChannel(channelName string) (appId string, accessToken string) {
+	appConfigsOnce.Do(loadAppConfigs)
+	for _, cfg := range appConfigs {
+		if cfg.ChannelPrefix != "" && strings.HasPrefix(channelName, cfg.ChannelPrefix) {
+			token := cfg.AccessToken
+			if token == "" {
+				token = GetEnv("EXPO_ACCESS_TOKEN")
+			}
+			return cfg.AppId, token
+		}
+	}
+	return GetEnv("EXPO_APP_ID"), GetEnv("EXPO_ACCESS_TOKEN")
+}
 
 func validateStorageMode(storageMode string) bool {
 	return storageMode == "local" || storageMode == "s3"

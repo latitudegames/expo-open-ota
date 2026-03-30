@@ -196,8 +196,7 @@ func FetchExpoChannelMapping(channelName string) (*ExpoChannelMapping, error) {
 		}
 	`
 
-	appId := GetExpoAppId()
-	expoToken := GetExpoAccessToken()
+	appId, expoToken := config.ResolveAppForChannel(channelName)
 	variables := map[string]interface{}{
 		"appId":       appId,
 		"channelName": channelName,
